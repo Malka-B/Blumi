@@ -35,6 +35,8 @@ namespace example
             {
                 app.UseDeveloperExceptionPage();
             }
+            
+            app.UseStaticFiles();
 
             app.UseHttpsRedirection();
 
