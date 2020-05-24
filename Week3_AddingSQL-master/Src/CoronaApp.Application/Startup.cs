@@ -10,8 +10,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using CoronaApp.Services;
+using CoronaApp.Services.Models;
 
-namespace example
+namespace CoronaApp.Api
 {
     public class Startup
     {
@@ -26,12 +28,7 @@ namespace example
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddCors(o => o.AddPolicy("AllowAll", builder =>
-            {
-                builder.AllowAnyOrigin()
-                       .AllowAnyMethod()
-                       .AllowAnyHeader();
-            }));
+            services.AddScoped<IPatientRepository, PatientRepository>();
 
         }
 
@@ -42,16 +39,13 @@ namespace example
             {
                 app.UseDeveloperExceptionPage();
             }
-            
             app.UseStaticFiles();
-
             app.UseHttpsRedirection();
 
             app.UseRouting();
 
             app.UseAuthorization();
 
-            app.UseCors("AllowAll");
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
