@@ -1,7 +1,7 @@
 ﻿'use strict'
 
 let row = 0;
-let locationsList = [];
+let patientToSave = { patientId: "", locationsList: [] };
 const helloTitle = document.createElement('h1');
 helloTitle.innerText = 'Hello Epidemiological Report';
 document.body.appendChild(helloTitle);
@@ -13,7 +13,12 @@ document.body.appendChild(patientId);
 const bodyTableRows = document.createElement('tbody');
 bodyTableRows.id = 'bodyTableRows';
 
+const buttonsDiv = document.createElement('div');
+buttonsDiv.id = 'buttonsDiv';
+const inputsDiv = document.createElement('div');
+inputsDiv.id = 'inputsDiv';
 const tableDiv = document.createElement('div');
+tableDiv.id = 'tableDiv';
 const locationsTable = document.createElement('table');
 const bodyTable = document.createElement('tbody');
 
@@ -38,6 +43,7 @@ for (let k = 0; k < 5; k++) {
     tableRow.appendChild(tableCol);
 }
 bodyTable.appendChild(tableRow);
+const thDiv = document.createElement('div');
 row++;
 
 const startDateInput = document.createElement('input');
@@ -45,32 +51,38 @@ startDateInput.setAttribute("type", "date");
 startDateInput.placeholder = 'Start date';
 startDateInput.id = 'startDateInput';
 startDateInput.classList.add("locationInput");
-document.body.appendChild(startDateInput);
+inputsDiv.appendChild(startDateInput);
+//document.body.appendChild(startDateInput);
 
 const endDateInput = document.createElement('input');
 endDateInput.setAttribute("type", "date");
 endDateInput.placeholder = 'End date';
 endDateInput.id = 'endDateInput';
 startDateInput.classList.add("locationInput");
-document.body.appendChild(endDateInput);
+inputsDiv.appendChild(endDateInput);
+//document.body.appendChild(endDateInput);
 
 const cityInput = document.createElement('input');
 cityInput.setAttribute("type", "text");
 cityInput.placeholder = 'City';
 cityInput.id = 'cityInput';
 cityInput.classList.add("locationInput");
-document.body.appendChild(cityInput);
+inputsDiv.appendChild(cityInput);
+//document.body.appendChild(cityInput);
 
 const locationInput = document.createElement('input');
 locationInput.setAttribute("type", "taxt");
 locationInput.placeholder = 'location';
 locationInput.id = 'locationInput';
 locationInput.classList.add("locationInput");
-document.body.appendChild(locationInput);
+inputsDiv.appendChild(locationInput);
+inputsDiv.style.display = "none";
+//document.body.appendChild(locationInput);
 
 const addLocationBtn = document.createElement('button');
 addLocationBtn.innerText = 'Add location';
-document.body.appendChild(addLocationBtn);
+buttonsDiv.appendChild(addLocationBtn);
+//document.body.appendChild(addLocationBtn);
 addLocationBtn.addEventListener("click", function () {
     let report = {
         rowId: row,
@@ -78,18 +90,17 @@ addLocationBtn.addEventListener("click", function () {
         startDate: document.getElementById('startDateInput').value,
         endDate: document.getElementById('endDateInput').value,
         city: document.getElementById('cityInput').value,
-        location: document.getElementById('locationInput').value
+        locations: document.getElementById('locationInput').value
     };
 
-    let location = {
-        patientID: document.getElementById('PatientID').value,
+    let location = {        
         startDate: document.getElementById('startDateInput').value,
         endDate: document.getElementById('endDateInput').value,
         city: document.getElementById('cityInput').value,
-        location: document.getElementById('locationInput').value
+        locations: document.getElementById('locationInput').value
     };
-
-    locationsList.push(location);
+    patientToSave.patientId = document.getElementById('PatientID').value;
+    patientToSave.locationsList.push(location);
     document.getElementById('startDateInput').value = "";
     document.getElementById('endDateInput').value = "";
     document.getElementById('cityInput').value = "";
@@ -101,8 +112,17 @@ addLocationBtn.addEventListener("click", function () {
 
 const saveLocationsBtn = document.createElement('button');
 saveLocationsBtn.innerText = 'Save locations';
-document.body.appendChild(saveLocationsBtn);
+buttonsDiv.appendChild(saveLocationsBtn);
+//document.body.appendChild(saveLocationsBtn);
+
+buttonsDiv.style.display = "none";
 saveLocationsBtn.addEventListener('click', saveLocations)
+
+locationsTable.appendChild(bodyTable);
+tableDiv.appendChild(locationsTable);
+document.body.appendChild(tableDiv);
+document.body.appendChild(inputsDiv);
+document.body.appendChild(buttonsDiv);
 
 function getLocationsById() {
     if (patientIdInput.value.length === 9) {
@@ -111,6 +131,10 @@ function getLocationsById() {
             clearTable();
             c = false;
         }
+        inputsDiv.style.display = "block";
+        buttonsDiv.style.display = "block";
+       
+
         //ajax to getLocationsById
         var xhttp = new XMLHttpRequest();
 
@@ -119,24 +143,25 @@ function getLocationsById() {
             if (this.readyState == 4 && this.status == 200) {
 
                 var locations = JSON.parse(xhttp.responseText);
-                if (locations.length == 1) {
-                    addTable(locations[0], 1);
+                debugger;
+                if (locations.locationsList.length == 1) {
+                    addTable(locations.locationsList[0], 1);
                 }
                 else {
-                    addTable(locations, locations.length);
+                    addTable(locations.locationsList, locations.locationsList.length);
                 }
             }
 
 
         };
-        xhttp.open("GET", "/Locations?patientId=" + document.getElementById('PatientID').value, true);
+        xhttp.open("GET", "/api/Patient?patientId=" + document.getElementById('PatientID').value, true);
         xhttp.send();
     }
 }
 
 
 function saveLocations() {
-
+        
     var xhttp = new XMLHttpRequest();
 
     xhttp.onreadystatechange = function () {
@@ -149,9 +174,9 @@ function saveLocations() {
         }
     }
 
-    xhttp.open("POST", "Locations", true);
+    xhttp.open("POST", "/api/Patient", true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
-    xhttp.send(JSON.stringify(locationsList));
+    xhttp.send(JSON.stringify(patientToSave));
 }
 
 function removeRow(rowNumber, patient) {
@@ -168,7 +193,7 @@ function removeRow(rowNumber, patient) {
         }
     }
 
-    xhttp.open("DELETE", "Locations", true);
+    xhttp.open("DELETE", "/api/Patient", true);
     xhttp.setRequestHeader('Content-Type', 'application/json');
     xhttp.send(JSON.stringify(patient));
 }
@@ -188,7 +213,7 @@ function addTable(patient, numberOfRows) {
         else {
             current = patient[index];
         }
-        const reportValues = [current.startDate, current.endDate, current.city, current.location, 'x'];
+        const reportValues = [current.startDate, current.endDate, current.city, current.locations, 'x'];
         const tableRow = document.createElement('tr');
         tableRow.classList.add("tableRow");
         tableRow.id = row;
@@ -212,6 +237,7 @@ function addTable(patient, numberOfRows) {
     }
     locationsTable.appendChild(bodyTableRows);
 }
-locationsTable.appendChild(bodyTable);
-tableDiv.appendChild(locationsTable);
-document.body.appendChild(tableDiv);
+//locationsTable.appendChild(bodyTable);
+//tableDiv.appendChild(locationsTable);
+//tableDiv.style.display = "none";
+//document.body.appendChild(tableDiv);

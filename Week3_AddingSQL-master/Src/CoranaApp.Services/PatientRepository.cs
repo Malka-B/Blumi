@@ -14,7 +14,7 @@ namespace CoronaApp.Services.Models
                 return patientLocations;
             }
             return null;
-            
+
         }
 
         public void Save(Patient patient)
@@ -22,7 +22,11 @@ namespace CoronaApp.Services.Models
             Patient patientToUpdate = AsDB.PatientList.Find(l => l.PatientID == patient.PatientID);
             if (patientToUpdate != null)
             {
-                patient.LocationsList.AddRange(patient.LocationsList);
+                patientToUpdate.LocationsList.AddRange(patient.LocationsList);
+            }
+            else
+            {
+                AsDB.PatientList.Add(patient);
             }
         }
     }
